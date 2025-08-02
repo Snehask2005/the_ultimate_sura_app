@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎡 Sura Spin Wheel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: white;
+      font-family: 'Fredoka One', cursive;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* Floating orbs background */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 240, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 183, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+      animation: float 15s ease-in-out infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Back button */
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      text-decoration: none;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 15px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .back-btn:hover {
+      transform: scale(1.05);
+    }
+
+    h1 {
+      font-family: 'Bangers', cursive;
+      font-size: 3.5rem;
+      color: #fff;
+      text-shadow: 3px 3px 0px #ff6b6b, 6px 6px 0px #4ecdc4;
+      margin-bottom: 30px;
+      animation: bounce 2s ease-in-out infinite alternate;
+      position: relative;
+      z-index: 2;
+    }
+
+    .wheel-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 40px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: 400px;
+      height: 400px;
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3), 
+                  inset 0 0 30px rgba(255,255,255,0.1);
+      border: 8px solid rgba(255,255,255,0.2);
+      transition: transform 4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .wheel-section {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      transform-origin: 100% 100%;
+      transform: rotate(calc(var(--i) * 72deg));
+      clip-path: polygon(0 0, 100% 0, 100% 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 10px;
+    }
+
+    .wheel-section:nth-child(1) { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); }
+    .wheel-section:nth-child(2) { background: linear-gradient(135deg, #4ecdc4, #44a08d); }
+    .wheel-section:nth-child(3) { background: linear-gradient(135deg, #45b7d1, #96c93d); }
+    .wheel-section:nth-child(4) { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .wheel-section:nth-child(5) { background: linear-gradient(135deg, #ffeaa7, #fdcb6e); }
+
+    .wheel-section img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-bottom: 5px;
+      border: 2px solid rgba(255,255,255,0.8);
+      transform: rotate(calc(var(--i) * -72deg + 36deg));
+    }
+
+    .wheel-section span {
+      font-size: 0.8rem;
+      color: white;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+      transform: rotate(calc(var(--i) * -72deg + 36deg));
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2rem;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+      z-index: 10;
+      animation: pointerBounce 2s ease-in-out infinite;
+    }
+
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    #spinBtn {
+      padding: 20px 40px;
+      font-size: 1.5rem;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      color: white;
+      font-family: 'Fredoka One', cursive;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #spinBtn:hover {
+      transform: translateY(-5px) scale(1.1);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    }
+
+    #spinBtn:active {
+      transform: translateY(-2px) scale(1.05);
+    }
+
+    #spinBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result-container {
+      text-align: center;
+      margin-top: 30px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .status {
+      font-size: 1.1rem;
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+      margin-top: 10px;
+    }
+
+    .winner-display {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 25px;
+      padding: 30px;
+      margin: 30px auto;
+      max-width: 500px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      animation: winnerAppear 0.5s ease-out;
+    }
+
+    .winner-image {
+      margin-bottom: 20px;
+    }
+
+    .winner-image img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 5px solid #ffd700;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      animation: winnerGlow 2s ease-in-out infinite alternate;
+    }
+
+    .winner-text h2 {
+      color: #333;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      font-family: 'Bangers', cursive;
+    }
+
+    .winner-text p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    /* Animations */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes bounce {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-10px); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+      33% { transform: translate(30px, -30px) rotate(120deg); }
+      66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+
+    @keyframes pointerBounce {
+      0%, 100% { transform: translateX(-50%) translateY(0px); }
+      50% { transform: translateX(-50%) translateY(-10px); }
+    }
+
+    @keyframes winnerAppear {
+      from { opacity: 0; transform: scale(0.8) translateY(30px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes winnerGlow {
+      0% { box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 20px rgba(255, 215, 0, 0.5); }
+      100% { box-shadow: 0 15px 40px rgba(0,0,0,0.4), 0 0 40px rgba(255, 215, 0, 0.8); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .wheel-wrapper {
+        width: 300px;
+        height: 300px;
+      }
+      
+      h1 {
+        font-size: 2.5rem;
+      }
+      
+      #spinBtn {
+        padding: 15px 30px;
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Music -->
+  <audio id="bgMusic" autoplay loop style="display: none;">
+    <source src="music/surasong.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <a href="index.html" class="back-btn">← Back to Home</a>
+
+  <h1>🎡 Sura Spin Wheel 🎡</h1>
+
+  <div class="wheel-container">
+    <div class="wheel-wrapper">
+      <div class="wheel" id="wheel">
+        <div class="wheel-section" data-sura="1" style="--i: 0;">
+          <img src="images/sura1.png" alt="Sura 1">
+          <span>Legendary</span>
+        </div>
+        <div class="wheel-section" data-sura="2" style="--i: 1;">
+          <img src="images/sura2.png" alt="Sura 2">
+          <span>Power</span>
+        </div>
+        <div class="wheel-section" data-sura="3" style="--i: 2;">
+          <img src="images/sura3.png" alt="Sura 3">
+          <span>Confident</span>
+        </div>
+        <div class="wheel-section" data-sura="4" style="--i: 3;">
+          <img src="images/sura4.png" alt="Sura 4">
+          <span>Boss</span>
+        </div>
+        <div class="wheel-section" data-sura="5" style="--i: 4;">
+          <img src="images/sura5.png" alt="Sura 5">
+          <span>Champion</span>
+        </div>
+      </div>
+      <div class="wheel-pointer">▼</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="spinBtn">🎰 SPIN THE WHEEL!</button>
+  </div>
+
+  <div class="result-container">
+    <div class="status" id="status">Ready to spin! Click the wheel to get your Sura!</div>
+    <div class="winner-display" id="winnerDisplay" style="display: none;">
+      <div class="winner-image">
+        <img id="winnerImg" src="" alt="Winner">
+      </div>
+      <div class="winner-text">
+        <h2 id="winnerName">Your Sura!</h2>
+        <p id="winnerMessage">Congratulations! This is your Sura for today!</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    console.log('🎰 Sura Spin Wheel loading...');
+    
+    const wheel = document.getElementById('wheel');
+    const spinBtn = document.getElementById('spinBtn');
+    const status = document.getElementById('status');
+    const winnerDisplay = document.getElementById('winnerDisplay');
+    const winnerImg = document.getElementById('winnerImg');
+    const winnerName = document.getElementById('winnerName');
+    const winnerMessage = document.getElementById('winnerMessage');
+    
+    // Sura data with names and messages
+    const suraData = {
+      1: { 
+        name: "Legendary Sura", 
+        img: "images/sura1.png",
+        message: "You're destined for greatness! This is your main character moment! 🌟"
+      },
+      2: { 
+        name: "Power Sura", 
+        img: "images/sura2.png",
+        message: "Maximum energy unlocked! You're unstoppable today! ⚡"
+      },
+      3: { 
+        name: "Confident Sura", 
+        img: "images/sura3.png",
+        message: "Confidence level: MAXIMUM! Walk tall, you've got this! 💪"
+      },
+      4: { 
+        name: "Boss Sura", 
+        img: "images/sura4.png",
+        message: "Boss mode activated! Time to take charge and lead! 👑"
+      },
+      5: { 
+        name: "Champion Sura", 
+        img: "images/sura5.png",
+        message: "Victory is yours! Champion mindset engaged! 🏆"
+      }
+    };
+
+    let isSpinning = false;
+    let currentRotation = 0;
+
+    // Spin wheel function
+    function spinWheel() {
+      if (isSpinning) return;
+      
+      console.log('🎰 Spinning the wheel!');
+      isSpinning = true;
+      spinBtn.disabled = true;
+      spinBtn.textContent = "🌀 SPINNING...";
+      status.textContent = "🎯 The wheel is spinning! Your Sura is being chosen...";
+      winnerDisplay.style.display = 'none';
+      
+      // Calculate random rotation (3-5 full spins + random position)
+      const minSpins = 3;
+      const maxSpins = 5;
+      const spins = minSpins + Math.random() * (maxSpins - minSpins);
+      const finalRotation = spins * 360 + Math.random() * 360;
+      
+      currentRotation += finalRotation;
+      
+      // Apply the rotation
+      wheel.style.transition = 'transform 4s cubic-bezier(0.23, 1, 0.32, 1)';
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+      
+      // Determine winner after spin completes
+      setTimeout(() => {
+        const normalizedRotation = currentRotation % 360;
+        const sectorAngle = 360 / 5; // 5 sections = 72 degrees each
+        
+        // Adjust for pointer at top (need to account for pointer position)
+        const adjustedRotation = (360 - normalizedRotation + 90) % 360;
+        const winningSector = Math.floor(adjustedRotation / sectorAngle) + 1;
+        
+        console.log('🎯 Winner:', winningSector);
+        showWinner(winningSector);
+        
+      }, 4000); // 4 seconds spin duration
+    }
+    
+    // Show winner function
+    function showWinner(suraNumber) {
+      const winner = suraData[suraNumber];
+      
+      if (!winner) {
+        console.error('Winner not found:', suraNumber);
+        return;
+      }
+      
+      console.log('🏆 Showing winner:', winner.name);
+      
+      // Update winner display
+      winnerImg.src = winner.img;
+      winnerName.textContent = winner.name;
+      winnerMessage.textContent = winner.message;
+      
+      // Show winner with animation
+      winnerDisplay.style.display = 'block';
+      
+      // Update status and button
+      status.textContent = `🎉 Congratulations! You got ${winner.name}!`;
+      spinBtn.disabled = false;
+      spinBtn.textContent = "🎰 SPIN AGAIN!";
+      isSpinning = false;
+      
+      // Add some celebration effects
+      createConfetti();
+    }
+    
+    // Simple confetti effect
+    function createConfetti() {
+      console.log('🎊 Creating confetti!');
+      
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.style.position = 'fixed';
+          confetti.style.left = Math.random() * 100 + 'vw';
+          confetti.style.top = '-10px';
+          confetti.style.width = '10px';
+          confetti.style.height = '10px';
+          confetti.style.backgroundColor = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f093fb', '#ffeaa7'][Math.floor(Math.random() * 5)];
+          confetti.style.pointerEvents = 'none';
+          confetti.style.zIndex = '1000';
+          confetti.style.borderRadius = '50%';
+          
+          document.body.appendChild(confetti);
+          
+          // Animate confetti falling
+          let position = -10;
+          const fall = setInterval(() => {
+            position += 5;
+            confetti.style.top = position + 'px';
+            
+            if (position > window.innerHeight) {
+              clearInterval(fall);
+              document.body.removeChild(confetti);
+            }
+          }, 50);
+          
+        }, i * 30);
+      }
+    }
+
+    // Event listeners
+    spinBtn.addEventListener('click', spinWheel);
+    
+    // Background music control
+    document.addEventListener("DOMContentLoaded", () => {
+      const bgMusic = document.getElementById("bgMusic");
+      
+      const startMusic = () => {
+        bgMusic.play();
+        document.removeEventListener("click", startMusic);
+      };
+      
+      document.addEventListener("click", startMusic);
+    });
+    
+    // Initialize
+    console.log('🎡 Sura Spin Wheel ready to go!');
+    status.textContent = "🎯 Ready to discover your Sura? Click SPIN THE WHEEL!";
+
+  </script>
+</body>
+</html>
